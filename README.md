@@ -19,22 +19,6 @@ MainPadel adalah aplikasi web elegan yang dirancang khusus untuk klub olahraga p
 - Arsitektur Responsif: Dioptimalkan sepenuhnya untuk pengalaman Desktop dan Mobile dengan antarmuka yang berbeda.
 - Antarmuka Pengguna Berkualitas: Dibangun dengan Tailwind CSS dan Framer Motion untuk animasi yang halus.
 
-## Dokumentasi Visual
-
-### Tampilan Desktop
-
-Antarmuka beranda dan pemesanan menampilkan tata letak imersif dengan bilah sisi yang dinamis. 
-*(Anda dapat mengganti foto ini dengan menyimpan screenshot web Anda ke folder `public/images/desktop-view.jpg`)*
-
-![Beranda Desktop](public/images/foto1.jpg)
-
-### Pengalaman Mobile
-
-Interaksi terpusat, kartu yang dapat ditumpuk, dan area sentuh lebar memastikan alur pemesanan seluler yang sempurna.
-*(Anda dapat mengganti foto ini dengan menyimpan screenshot HP Anda ke folder `public/images/mobile-view.jpg`)*
-
-![Pemesanan Mobile](public/images/raket2.jpg)
-
 ## Teknologi
 
 - Framework: Next.js 15 (App Router)
@@ -42,4 +26,3 @@ Interaksi terpusat, kartu yang dapat ditumpuk, dan area sentuh lebar memastikan 
 - Animasi: Framer Motion
 - Database dan Autentikasi: Supabase
 - Ikon: Lucide React / SVG Kustom
-
