@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+  <img src="https://ui-avatars.com/api/?name=Main+Padel&background=0284c7&color=fff&size=120" alt="MainPadel Logo" />
+  <h1>MainPadel Booking Platform</h1>
+  <p>A modern, real-time court reservation system built with Next.js & Supabase.</p>
+</div>
 
-## Getting Started
+---
 
-First, run the development server:
+## 🌟 Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**MainPadel** is an elegant and lightning-fast web application designed specifically for padel sports clubs. It allows customers to book courts, rent rackets, and check schedules in real-time. On the backend, an administrative dashboard tracks live statistics, incoming bookings, and manages inventory.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### ✨ Key Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Real-Time Booking System:** Customers can seamlessly select dates, courts, and time slots.
+- **Racket Rentals:** Add-on feature allowing customers to rent multiple rackets during their session.
+- **WhatsApp Integration:** Built-in "Check Booking" feature allowing users to monitor their reservation status using their phone number.
+- **Live Admin Dashboard:** Powered by Supabase Realtime, the admin dashboard updates instantaneously the second a checkout occurs.
+- **Responsive Architecture:** Fully optimized for both Desktop and Mobile experiences with distinct interfaces.
+- **Beautiful UI/UX:** Crafted with Tailwind CSS and Framer Motion for buttery-smooth micro-animations.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📸 Screenshots
 
-## Learn More
+<details>
+<summary><b>Desktop Display</b> (Click to expand)</summary>
+<br>
 
-To learn more about Next.js, take a look at the following resources:
+> *The landing page and booking view feature an immersive layout with dynamic sticky sidebars.*
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+<br>
+<img src="public/images/hero2.jpg" alt="Desktop Home" width="100%"/>
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+</details>
 
-## Deploy on Vercel
+<details>
+<summary><b>Mobile Experience</b> (Click to expand)</summary>
+<br>
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+> *Centered interactions, stackable cards, and full-width touch areas guarantee a perfect mobile booking flow.*
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+<br>
+<img src="public/images/raket2.jpg" alt="Mobile Booking" width="300" />
+</details>
+
+## 🚀 Tech Stack
+
+- **Framework:** [Next.js 15 (App Router)](https://nextjs.org/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **Animations:** [Framer Motion](https://www.framer.com/motion/)
+- **Database & Auth:** [Supabase](https://supabase.com/)
+- **Icons:** [Lucide React](https://lucide.dev/) / Custom SVGs
+
+## ⚙️ How to Deploy (Vercel)
+
+This application is fully prepared for Vercel deployment.
+
+1. Push this code to your GitHub repository.
+2. Go to your [Vercel Dashboard](https://vercel.com/dashboard) and click **Add New > Project**.
+3. Import the `main-padel` repository.
+4. **Environment Variables:** During the import step, copy the variables from your local `.env.local` into the Vercel Environment Variables section:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+5. Click **Deploy**. Vercel will automatically build and publish your site! 🚀
+
+## 👨‍💻 Database Schema (Supabase)
+
+If setting this up on a fresh Supabase project, ensure you have the following tables initialized:
+- `courts` (id, name, description, price_per_hour, image_url, status)
+- `rackets` (id, name, price_per_hour, available, image_url)
+- `bookings` (id, customer_name, customer_phone, customer_email, court_id, booking_date, start_time, racket_id [JSON], total_price, status)
+- `products` (id, name, description, category, price, stock, image_url, status)
+
+*(Make sure to disable RLS or set up open policies depending on your usage, and remove the `racket_id` Foreign Key constraint from the bookings table to allow JSON arrays.)*
