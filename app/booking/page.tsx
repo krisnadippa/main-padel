@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import Image from "next/image";
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";

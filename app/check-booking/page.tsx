@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getBookingsByPhone, Booking, getCourts, getRackets, Court, Racket, parseRacketsPayload } from "@/lib/db";
