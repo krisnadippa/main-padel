@@ -1,73 +1,66 @@
 <div align="center">
-  <img src="https://ui-avatars.com/api/?name=Main+Padel&background=0284c7&color=fff&size=120" alt="MainPadel Logo" />
-  <h1>MainPadel Booking Platform</h1>
-  <p>A modern, real-time court reservation system built with Next.js & Supabase.</p>
+  <img src="https://ui-avatars.com/api/?name=Main+Padel&background=0284c7&color=fff&size=120" alt="Logo MainPadel" />
+  <h1>Platform Reservasi MainPadel</h1>
+  <p>Sistem reservasi lapangan padel modern dan real-time yang dibangun dengan Next.js dan Supabase.</p>
 </div>
 
 ---
 
-## 🌟 Overview
+## Ringkasan
 
-**MainPadel** is an elegant and lightning-fast web application designed specifically for padel sports clubs. It allows customers to book courts, rent rackets, and check schedules in real-time. On the backend, an administrative dashboard tracks live statistics, incoming bookings, and manages inventory.
+MainPadel adalah aplikasi web elegan yang dirancang khusus untuk klub olahraga padel. Aplikasi ini memungkinkan pelanggan untuk memesan lapangan, menyewa raket, dan memeriksa jadwal secara langsung. Di sisi backend, dashboard administratif melacak statistik langsung, pesanan masuk, dan mengelola inventaris.
 
-### ✨ Key Features
+### Fitur Utama
 
-- **Real-Time Booking System:** Customers can seamlessly select dates, courts, and time slots.
-- **Racket Rentals:** Add-on feature allowing customers to rent multiple rackets during their session.
-- **WhatsApp Integration:** Built-in "Check Booking" feature allowing users to monitor their reservation status using their phone number.
-- **Live Admin Dashboard:** Powered by Supabase Realtime, the admin dashboard updates instantaneously the second a checkout occurs.
-- **Responsive Architecture:** Fully optimized for both Desktop and Mobile experiences with distinct interfaces.
-- **Beautiful UI/UX:** Crafted with Tailwind CSS and Framer Motion for buttery-smooth micro-animations.
+- Sistem Reservasi Real-Time: Pelanggan dapat memilih tanggal, lapangan, dan slot waktu dengan lancar.
+- Penyewaan Raket: Fitur tambahan yang memungkinkan pelanggan menyewa beberapa raket selama sesi mereka.
+- Integrasi WhatsApp: Fitur Cek Booking memungkinkan pengguna memantau status reservasi mereka menggunakan nomor telepon.
+- Dashboard Admin Langsung: Didukung oleh Supabase Realtime, dashboard admin diperbarui secara instan saat terjadi transaksi.
+- Arsitektur Responsif: Dioptimalkan sepenuhnya untuk pengalaman Desktop dan Mobile dengan antarmuka yang berbeda.
+- Antarmuka Pengguna Berkualitas: Dibangun dengan Tailwind CSS dan Framer Motion untuk animasi yang halus.
 
-## 📸 Screenshots
+## Dokumentasi Visual
 
-<details>
-<summary><b>Desktop Display</b> (Click to expand)</summary>
-<br>
+### Tampilan Desktop
 
-> *The landing page and booking view feature an immersive layout with dynamic sticky sidebars.*
+Antarmuka beranda dan pemesanan menampilkan tata letak imersif dengan bilah sisi yang dinamis. 
+*(Anda dapat mengganti foto ini dengan menyimpan screenshot web Anda ke folder `public/images/desktop-view.jpg`)*
 
-<br>
-<img src="public/images/hero2.jpg" alt="Desktop Home" width="100%"/>
+![Beranda Desktop](public/images/foto1.jpg)
 
-</details>
+### Pengalaman Mobile
 
-<details>
-<summary><b>Mobile Experience</b> (Click to expand)</summary>
-<br>
+Interaksi terpusat, kartu yang dapat ditumpuk, dan area sentuh lebar memastikan alur pemesanan seluler yang sempurna.
+*(Anda dapat mengganti foto ini dengan menyimpan screenshot HP Anda ke folder `public/images/mobile-view.jpg`)*
 
-> *Centered interactions, stackable cards, and full-width touch areas guarantee a perfect mobile booking flow.*
+![Pemesanan Mobile](public/images/raket2.jpg)
 
-<br>
-<img src="public/images/raket2.jpg" alt="Mobile Booking" width="300" />
-</details>
+## Teknologi
 
-## 🚀 Tech Stack
+- Framework: Next.js 15 (App Router)
+- Gaya: Tailwind CSS
+- Animasi: Framer Motion
+- Database dan Autentikasi: Supabase
+- Ikon: Lucide React / SVG Kustom
 
-- **Framework:** [Next.js 15 (App Router)](https://nextjs.org/)
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-- **Animations:** [Framer Motion](https://www.framer.com/motion/)
-- **Database & Auth:** [Supabase](https://supabase.com/)
-- **Icons:** [Lucide React](https://lucide.dev/) / Custom SVGs
+## Cara Deploy (Vercel)
 
-## ⚙️ How to Deploy (Vercel)
+Aplikasi ini siap untuk dideploy di Vercel.
 
-This application is fully prepared for Vercel deployment.
+1. Unggah kode ini ke repositori GitHub Anda.
+2. Buka Dashboard Vercel dan klik Add New > Project.
+3. Impor repositori main-padel.
+4. Variabel Lingkungan: Selama langkah impor, salin variabel dari file .env.local Anda ke bagian Vercel Environment Variables:
+   - NEXT_PUBLIC_SUPABASE_URL
+   - NEXT_PUBLIC_SUPABASE_ANON_KEY
+5. Klik Deploy. Vercel akan secara otomatis membangun dan mempublikasikan situs Anda.
 
-1. Push this code to your GitHub repository.
-2. Go to your [Vercel Dashboard](https://vercel.com/dashboard) and click **Add New > Project**.
-3. Import the `main-padel` repository.
-4. **Environment Variables:** During the import step, copy the variables from your local `.env.local` into the Vercel Environment Variables section:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-5. Click **Deploy**. Vercel will automatically build and publish your site! 🚀
+## Skema Database (Supabase)
 
-## 👨‍💻 Database Schema (Supabase)
+Jika mengatur ini pada proyek Supabase baru, pastikan Anda telah menginisialisasi tabel berikut:
+- courts (id, name, description, price_per_hour, image_url, status)
+- rackets (id, name, price_per_hour, available, image_url)
+- bookings (id, customer_name, customer_phone, customer_email, court_id, booking_date, start_time, racket_id [JSON], total_price, status)
+- products (id, name, description, category, price, stock, image_url, status)
 
-If setting this up on a fresh Supabase project, ensure you have the following tables initialized:
-- `courts` (id, name, description, price_per_hour, image_url, status)
-- `rackets` (id, name, price_per_hour, available, image_url)
-- `bookings` (id, customer_name, customer_phone, customer_email, court_id, booking_date, start_time, racket_id [JSON], total_price, status)
-- `products` (id, name, description, category, price, stock, image_url, status)
-
-*(Make sure to disable RLS or set up open policies depending on your usage, and remove the `racket_id` Foreign Key constraint from the bookings table to allow JSON arrays.)*
+Pastikan untuk menonaktifkan RLS atau mengatur kebijakan terbuka tergantung pada penggunaan Anda, dan hapus batasan Foreign Key racket_id dari tabel bookings untuk memungkinkan penyimpanan data dalam format JSON.
