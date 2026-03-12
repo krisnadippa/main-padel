@@ -327,7 +327,7 @@ function BookingContent() {
               <div style={{ background: "#fff", border: "1px solid var(--color-border)", borderRadius: "14px", padding: "24px", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
                 <h3 style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--color-accent)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Step 4 — Racket Rental (Optional)</h3>
                 <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginBottom: "16px" }}>Add a racket rental to your booking.</p>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div className="racket-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
                   {loading ? (
                     <div style={{ color: "var(--color-text-muted)", fontSize: "0.875rem" }}>Loading rackets...</div>
                   ) : (
@@ -364,29 +364,32 @@ function BookingContent() {
                                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: "800", fontSize: "0.8rem", zIndex: 10 }}>OUT OF STOCK</div>
                           )}
                         </div>
-                        <div style={{ padding: "16px" }}>
-                          <p style={{ fontSize: "0.9rem", fontWeight: "700", color: "var(--color-text)", marginBottom: "6px" }}>{r.name}</p>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <p style={{ fontSize: "0.9rem", color: "var(--color-accent)", fontWeight: "800" }}>Rp {r.price_per_hour.toLocaleString("id-ID")}/hr</p>
+                        <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                          <div style={{ minHeight: "2.8rem" }}>
+                            <p style={{ fontSize: "0.95rem", fontWeight: "700", color: "var(--color-text)", marginBottom: "4px", lineHeight: "1.3" }}>{r.name}</p>
+                            {!isSelected && isAvailable && (
+                               <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>{availableStock} rackets available</p>
+                            )}
+                          </div>
+                          
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginTop: "auto" }}>
+                            <p style={{ fontSize: "1.05rem", color: "var(--color-accent)", fontWeight: "800" }}>Rp {r.price_per_hour.toLocaleString("id-ID")}<span style={{ fontSize: "0.75rem", fontWeight: "500", opacity: 0.8 }}>/hr</span></p>
                             
                             {isSelected && isAvailable && (
-                              <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "var(--color-surface)", borderRadius: "8px", padding: "4px" }} onClick={e => e.stopPropagation()}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "var(--color-surface)", borderRadius: "10px", padding: "4px 8px", border: "1px solid var(--color-border)" }} onClick={e => e.stopPropagation()}>
                                 <button type="button" onClick={() => {
                                   if (currentQty > 1) setSelectedRackets(selectedRackets.map(x => x.id === r.id ? { ...x, q: x.q - 1 } : x));
                                   else setSelectedRackets(selectedRackets.filter(x => x.id !== r.id));
-                                }} style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", border: "1px solid var(--color-border)", borderRadius: "6px", cursor: "pointer", color: "var(--color-text)", fontWeight: "700" }}>-</button>
-                                <span style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--color-text)", width: "12px", textAlign: "center" }}>{currentQty}</span>
+                                }} style={{ width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", border: "1px solid var(--color-border)", borderRadius: "8px", cursor: "pointer", color: "var(--color-text)", fontWeight: "700", fontSize: "1.1rem" }}>−</button>
+                                <span style={{ fontSize: "0.9rem", fontWeight: "800", color: "var(--color-text)", width: "16px", textAlign: "center" }}>{currentQty}</span>
                                 <button type="button" onClick={() => {
                                   if (totalRacketsSelected < 4 && currentQty < availableStock) {
                                     setSelectedRackets(selectedRackets.map(x => x.id === r.id ? { ...x, q: x.q + 1 } : x));
                                   }
-                                }} style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", border: "1px solid var(--color-border)", borderRadius: "6px", cursor: "pointer", color: "var(--color-text)", fontWeight: "700", opacity: (totalRacketsSelected >= 4 || currentQty >= availableStock) ? 0.5 : 1 }}>+</button>
+                                }} style={{ width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", border: "1px solid var(--color-border)", borderRadius: "8px", cursor: "pointer", color: "var(--color-text)", fontWeight: "700", fontSize: "1.1rem", opacity: (totalRacketsSelected >= 4 || currentQty >= availableStock) ? 0.3 : 1 }}>+</button>
                               </div>
                             )}
                           </div>
-                          {!isSelected && isAvailable && (
-                             <p style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", marginTop: "4px" }}>Stock available: {availableStock}</p>
-                          )}
                         </div>
                       </motion.div>
                     )})
@@ -491,6 +494,8 @@ function BookingContent() {
 
       <style>{`
         @media (max-width: 900px) { .booking-grid { grid-template-columns: 1fr !important; } }
+        @media (max-width: 600px) { .racket-grid { grid-template-columns: 1fr !important; } }
+
       `}</style>
     </div>
   );

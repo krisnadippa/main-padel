@@ -115,7 +115,7 @@ export default function ProductCard({
         >
           {name}
         </h3>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
           <p style={{ fontSize: "1rem", fontWeight: "800", color: "var(--color-accent)" }}>
             Rp {price.toLocaleString("id-ID")}
           </p>
