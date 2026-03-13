@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import AnimatedSection from "@/components/AnimatedSection";
 import { createBooking, getCourts, getRackets, Court, Racket, getBookingsByDate, Booking, RacketSelection, parseRacketsPayload } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 
 
 const TIME_SLOTS = ["07:00","08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"];
@@ -35,6 +36,9 @@ function BookingContent() {
   const [submitting, setSubmitting] = useState(false);
   const [bookingIds, setBookingIds] = useState<string[]>([]);
   const [bookingsForDate, setBookingsForDate] = useState<Booking[]>([]);
+  const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null);
+  const [xenditExternalId, setXenditExternalId] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<"pending" | "paid" | "checking">("pending");
 
   useEffect(() => {
     async function load() {
@@ -67,6 +71,78 @@ function BookingContent() {
     }
     loadSlots();
   }, [selectedDate]);
+
+  // --- Persistent Receipt Handling ---
+  useEffect(() => {
+    const status = searchParams.get("status");
+    const extId = searchParams.get("external_id");
+    
+    if (status === "success" && extId) {
+      async function reconstruct() {
+        try {
+          const parts = (extId as string).split("|");
+          if (parts[0] !== "BOOKING" || !parts[2]) return;
+          
+          const ids = parts[2].split(",");
+          const { data: bookings, error } = await supabase
+            .from("bookings")
+            .select("*")
+            .in("id", ids);
+            
+          if (error || !bookings || bookings.length === 0) return;
+          
+          const first = bookings[0];
+          // Restore basic info
+          setName(first.customer_name);
+          setPhone(first.customer_phone);
+          setEmail(first.customer_email || "");
+          setSelectedDate(first.booking_date);
+          setSelectedCourt(first.court_id);
+          
+          // Restore slots
+          const slots = bookings.map((b: Booking) => b.start_time.slice(0, 5)).sort();
+          setSelectedSlots(slots);
+          
+          // Restore rackets (should be same across all for one transaction)
+          if (first.racket_id) {
+            setSelectedRackets(parseRacketsPayload(first.racket_id));
+          }
+          
+          // ID display
+          setBookingIds(ids.map(id => id.toString().slice(0, 8).toUpperCase()));
+          
+          // Finish reconstruction
+          setXenditExternalId(extId);
+          setSubmitted(true);
+
+          // Auto-check status if we just came back from Xendit
+          if (first.status === 'pending') {
+            setPaymentStatus('checking');
+            // Give Xendit a moment to update status in sandbox
+            setTimeout(async () => {
+              try {
+                const res = await fetch(`/api/payment/check-status?external_id=${extId}`);
+                const data = await res.json();
+                if (data.status === 'PAID' || data.status === 'SETTLED') {
+                  setPaymentStatus('paid');
+                } else {
+                  setPaymentStatus('pending');
+                }
+              } catch {
+                setPaymentStatus('pending');
+              }
+            }, 2000);
+          } else {
+            setPaymentStatus(first.status === 'confirmed' ? 'paid' : 'pending');
+          }
+        } catch (err) {
+          console.error("Reconstruction error:", err);
+        }
+      }
+      reconstruct();
+    }
+  }, [searchParams, courts, rackets]); 
+  // ------------------------------------
 
   const chosenCourt = courts.find((c) => c.id === selectedCourt);
   const bookedSlots = selectedCourt 
@@ -121,6 +197,7 @@ function BookingContent() {
           racket_id: selectedRackets.length > 0 ? JSON.stringify(selectedRackets) : undefined,
           total_price: totalPrice,
           status: "pending",
+          payment_method: "xendit",
         });
         newBookings.push(booking);
         ids.push(booking.id?.toString().slice(0, 8).toUpperCase() ?? "NEW");
@@ -128,9 +205,40 @@ function BookingContent() {
       
       setBookingsForDate((prev) => [...prev, ...newBookings]);
       setBookingIds(ids);
-      setSubmitted(true);
-    } catch {
-      // Fallback — still show success even if DB offline
+
+      // --- Xendit Integration ---
+      try {
+        const response = await fetch("/api/payment/create-invoice", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: totalPrice,
+            customer_name: name,
+            customer_email: email || undefined,
+            customer_phone: phone,
+            description: `Booking ${chosenCourt?.name} - ${selectedDate}`,
+            booking_ids: newBookings.map(b => b.id)
+          }),
+        });
+        
+        const data = await response.json();
+        if (data.invoice_url) {
+          // Store invoice details and show receipt screen as requested
+          setInvoiceUrl(data.invoice_url);
+          setXenditExternalId(data.external_id);
+          setSubmitted(true);
+        } else {
+          console.error("Xendit Error:", data.error);
+          setSubmitted(true);
+        }
+      } catch (err) {
+        console.error("Payment initiation failed:", err);
+        setSubmitted(true);
+      }
+      // --------------------------
+      
+    } catch (error) {
+      console.error("Booking error:", error);
       setBookingIds(["MANUAL"]);
       setSubmitted(true);
     } finally {
@@ -147,21 +255,26 @@ function BookingContent() {
       <div style={{ minHeight: "100vh", background: "var(--color-bg)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           style={{ background: "#fff", border: "1px solid var(--color-border)", borderRadius: "20px", padding: "56px 40px", textAlign: "center", maxWidth: "460px", width: "100%", boxShadow: "0 8px 40px rgba(0,0,0,0.1)" }}>
-          <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "var(--color-accent-light)", border: "2px solid var(--color-accent)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--color-accent)", fontSize: "24px", fontWeight: "700" }}>✓</div>
-          <h2 style={{ fontSize: "1.6rem", fontWeight: "800", color: "var(--color-text)", marginBottom: "10px" }}>Booking Confirmed!</h2>
+          <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: paymentStatus === 'paid' ? "var(--color-accent-light)" : "#FEF3C7", border: paymentStatus === 'paid' ? "2px solid var(--color-accent)" : "2px solid #F59E0B", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: paymentStatus === 'paid' ? "var(--color-accent)" : "#B45309", fontSize: "24px", fontWeight: "700" }}>{paymentStatus === 'paid' ? "✓" : "!"}</div>
+          <h2 style={{ fontSize: "1.6rem", fontWeight: "800", color: "var(--color-text)", marginBottom: "10px" }}>
+            {paymentStatus === 'paid' ? "Booking Confirmed!" : "Booking Reserved"}
+          </h2>
           {bookingIds[0] !== "MANUAL" && <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginBottom: "4px", fontFamily: "monospace" }}>ID: #{bookingIds.join(", #")}</p>}
           <p style={{ color: "var(--color-text-secondary)", lineHeight: "1.7", marginBottom: "28px", fontSize: "0.9rem" }}>
-            Your court has been reserved. We'll confirm to <strong style={{ color: "var(--color-text)" }}>{email || phone}</strong> shortly.
+            {paymentStatus === 'paid' 
+              ? `Payment successful! Your court has been reserved. We've sent details to ${email || phone}.`
+              : "Please complete your payment within 15 minutes to secure your court."}
           </p>
           <div style={{ background: "var(--color-surface)", borderRadius: "10px", padding: "18px", textAlign: "left", marginBottom: "24px", border: "1px solid var(--color-border)" }}>
             {[
+              { label: "Status", value: paymentStatus === 'paid' ? "PAID" : "WAITING PAYMENT", color: paymentStatus === 'paid' ? "var(--color-accent)" : "#F59E0B" },
               { label: "Court", value: chosenCourt?.name },
               { label: "Date", value: selectedDate },
               { label: "Time", value: selectedSlots.length > 0 ? selectedSlots.join(", ") : "—" },
             ].map(row => (
               <div key={row.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                 <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>{row.label}</span>
-                <span style={{ fontSize: "0.8rem", color: "var(--color-text)", fontWeight: "600" }}>{row.value}</span>
+                <span style={{ fontSize: "0.8rem", color: (row as any).color || "var(--color-text)", fontWeight: "600" }}>{row.value}</span>
               </div>
             ))}
             {selectedRackets.length > 0 && (
@@ -184,8 +297,38 @@ function BookingContent() {
               <span style={{ color: "var(--color-accent)", fontSize: "1rem", fontWeight: "900" }}>Rp {totalPrice.toLocaleString("id-ID")}</span>
             </div>
           </div>
-          <button className="btn-neon" style={{ width: "100%", justifyContent: "center" }}
-            onClick={() => { setSubmitted(false); setSelectedCourt(null); setSelectedSlots([]); setSelectedRackets([]); setName(""); setPhone(""); setEmail(""); }}>
+          
+          {paymentStatus !== 'paid' && invoiceUrl && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
+              <button className="btn-neon" style={{ width: "100%", justifyContent: "center", padding: "16px" }}
+                onClick={() => window.open(invoiceUrl, "_blank")}>
+                Pay Now (Xendit)
+              </button>
+              <button 
+                disabled={paymentStatus === 'checking'}
+                onClick={async () => {
+                  setPaymentStatus('checking');
+                  try {
+                    const res = await fetch(`/api/payment/check-status?external_id=${xenditExternalId}`);
+                    const data = await res.json();
+                    if (data.status === 'PAID' || data.status === 'SETTLED') {
+                      setPaymentStatus('paid');
+                    } else {
+                      alert("Payment not detected yet. Please ensure you have completed the payment.");
+                      setPaymentStatus('pending');
+                    }
+                  } catch {
+                    setPaymentStatus('pending');
+                  }
+                }}
+                style={{ width: "100%", background: "none", border: "1px solid var(--color-border)", padding: "12px", borderRadius: "10px", fontSize: "0.85rem", color: "var(--color-text-secondary)", cursor: "pointer" }}>
+                {paymentStatus === 'checking' ? "Checking..." : "I have paid, check status"}
+              </button>
+            </div>
+          )}
+
+          <button style={{ width: "100%", background: "none", border: "none", color: "var(--color-text-muted)", fontSize: "0.8rem", cursor: "pointer", textDecoration: "underline" }}
+            onClick={() => { setSubmitted(false); setSelectedCourt(null); setSelectedSlots([]); setSelectedRackets([]); setName(""); setPhone(""); setEmail(""); setPaymentStatus('pending'); }}>
             Book Another Court
           </button>
         </motion.div>

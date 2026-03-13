@@ -218,6 +218,7 @@ export default function AdminPage() {
   const [stats, setStats] = useState<{
     totalBookings: number; todayBookings: number; totalRevenue: number;
     activeCourts: number; activeProducts: number;
+    revenueByMethod?: Record<string, number>;
     trendData: { date: string; revenue: number; bookings: number }[];
   } | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -238,9 +239,10 @@ export default function AdminPage() {
     selected_rackets: RacketSelection[];
     total_price: number;
     status: "confirmed";
+    payment_method: "cash" | "transfer";
   };
   
-  const [addForm, setAddForm] = useState<AdminBookingForm>({ customer_name: "", customer_phone: "", customer_email: "", court_id: "lapangan1", booking_date: new Date().toISOString().split("T")[0], start_times: ["09:00"], selected_rackets: [], total_price: 150000, status: "confirmed" });
+  const [addForm, setAddForm] = useState<AdminBookingForm>({ customer_name: "", customer_phone: "", customer_email: "", court_id: "lapangan1", booking_date: new Date().toISOString().split("T")[0], start_times: ["09:00"], selected_rackets: [], total_price: 150000, status: "confirmed", payment_method: "cash" });
 
   const getAvailableRacketStock = (racketId: string, date: string, times: string[]) => {
     if (times.length === 0) return 12;
@@ -289,7 +291,7 @@ export default function AdminPage() {
       }
       setBookings((prev) => [...bs, ...prev]);
       setAddModalOpen(false);
-      setAddForm({ customer_name: "", customer_phone: "", customer_email: "", court_id: "lapangan1", booking_date: new Date().toISOString().split("T")[0], start_times: ["09:00"], selected_rackets: [], total_price: 150000, status: "confirmed" });
+      setAddForm({ customer_name: "", customer_phone: "", customer_email: "", court_id: "lapangan1", booking_date: new Date().toISOString().split("T")[0], start_times: ["09:00"], selected_rackets: [], total_price: 150000, status: "confirmed", payment_method: "cash" });
       setToast({ message: "Bookings added successfully!", type: "success" });
     } catch (err: any) {
       setToast({ message: err.message || "Failed to save booking", type: "error" });
@@ -645,9 +647,9 @@ export default function AdminPage() {
               {/* Stat Cards */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "16px", marginBottom: "28px" }}>
                 <StatCard icon={<I.Calendar />} label="Total Bookings" value={String(stats.totalBookings)} sub={`+${stats.todayBookings} today`} color="#0284c7" />
-                <StatCard icon={<I.Revenue />} label="Revenue" value={`Rp ${(stats.totalRevenue / 1000000).toFixed(1)}M`} sub="+12% vs last month" color="#d97706" />
+                <StatCard icon={<I.Revenue />} label="Total Revenue" value={`Rp ${(stats.totalRevenue / 1000000).toFixed(1)}M`} sub={`Cash/TRF: Rp ${( (stats.revenueByMethod?.cash || 0) + (stats.revenueByMethod?.transfer || 0) ) / 1000}K`} color="#d97706" />
+                <StatCard icon={<I.Revenue />} label="Xendit Revenue" value={`Rp ${( (stats.revenueByMethod?.xendit || 0) / 1000000).toFixed(1)}M`} color="#0ea5e9" />
                 <StatCard icon={<I.Court />} label="Active Courts" value={String(stats.activeCourts)} color="#16a34a" />
-                <StatCard icon={<I.Box />} label="Products Live" value={String(stats.activeProducts)} color="#7c3aed" />
               </div>
 
               {/* Charts Row */}
@@ -744,6 +746,7 @@ export default function AdminPage() {
                         <div><p style={{ fontSize: "0.75rem", color: "#64748b", textTransform: "uppercase" }}>Customer</p><p style={{ fontWeight: "600", color: "#0f172a" }}>{selectedBooking.customer_name}</p></div>
                         <div><p style={{ fontSize: "0.75rem", color: "#64748b", textTransform: "uppercase" }}>Phone</p><p style={{ fontWeight: "600", color: "#0f172a" }}>{formatPhone(selectedBooking.customer_phone)}</p></div>
                         <div><p style={{ fontSize: "0.75rem", color: "#64748b", textTransform: "uppercase" }}>Email</p><p style={{ fontWeight: "600", color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis" }}>{selectedBooking.customer_email || "—"}</p></div>
+                        <div><p style={{ fontSize: "0.75rem", color: "#64748b", textTransform: "uppercase" }}>Method</p><p style={{ fontWeight: "600", color: "#0f172a", textTransform: "capitalize" }}>{selectedBooking.payment_method || "xendit"}</p></div>
                         <div><p style={{ fontSize: "0.75rem", color: "#64748b", textTransform: "uppercase" }}>Status</p><div>{statusBadge(selectedBooking.status)}</div></div>
                       </div>
                       <div style={{ height: "1px", background: "#e2e8f0", margin: "16px 0" }} />
@@ -944,7 +947,21 @@ export default function AdminPage() {
                           </div>
                           <div>
                             <label style={{ fontSize: "0.7rem", fontWeight: "600", color: "var(--color-accent)", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: "4px" }}>Total Price (Rp)</label>
-                            <input className="input-dark" type="number" style={{ background: "rgba(14,187,170,0.05)", border: "1px solid rgba(14,187,170,0.2)" }} value={addForm.total_price} onChange={e => setAddForm(f => ({...f, total_price: Number(e.target.value)}))} />
+                            <input className="input-dark" type="number" style={{ background: "rgba(14,187,170,0.05)", border: "1px solid rgba(14,187,170,0.2)", marginBottom: "12px" }} value={addForm.total_price} onChange={e => setAddForm(f => ({...f, total_price: Number(e.target.value)}))} />
+                            
+                            <label style={{ fontSize: "0.7rem", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: "4px" }}>Payment Method *</label>
+                            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                              {["cash", "transfer"].map(m => (
+                                <button key={m} type="button" onClick={() => setAddForm(f => ({...f, payment_method: m as any}))}
+                                  style={{
+                                    flex: "1 0 70px", padding: "6px 4px", borderRadius: "8px", fontSize: "0.75rem", fontWeight: "600", textTransform: "capitalize",
+                                    background: addForm.payment_method === m ? "#0284c7" : "#f1f5f9",
+                                    color: addForm.payment_method === m ? "#fff" : "#475569",
+                                    border: "1px solid " + (addForm.payment_method === m ? "#0284c7" : "#cbd5e1"),
+                                    cursor: "pointer", transition: "all 0.15s"
+                                  }}>{m}</button>
+                              ))}
+                            </div>
                           </div>
                         </div>
                         <button type="submit" className="btn-neon" style={{ width: "100%", justifyContent: "center", padding: "10px", marginTop: "4px", opacity: addSubmitting ? 0.7 : 1 }} disabled={addSubmitting || !addForm.court_id}>
@@ -966,7 +983,7 @@ export default function AdminPage() {
                 </div>
                 <div style={{ overflowX: "auto" }}>
                   <table className="admin-table">
-                    <thead><tr>{["ID", "Customer", "Phone", "Court", "Date", "Time", "Status", "Actions"].map(h => <th key={h}>{h}</th>)}</tr></thead>
+                    <thead><tr>{["ID", "Customer", "Phone", "Court", "Date", "Time", "Method", "Status", "Actions"].map(h => <th key={h}>{h}</th>)}</tr></thead>
                     <tbody>
                       {bookings.map(b => (
                         <tr key={b.id}>
@@ -976,6 +993,7 @@ export default function AdminPage() {
                           <td>{courts.find(c => c.id === b.court_id)?.name || b.court_id}</td>
                           <td>{b.booking_date}</td>
                           <td>{b.start_time}</td>
+                          <td style={{ fontSize: "0.75rem", fontWeight: "600", color: "#64748b", textTransform: "capitalize" }}>{b.payment_method || "xendit"}</td>
                           <td>{statusBadge(b.status)}</td>
                           <td>
                             <div style={{ display: "flex", gap: "5px" }}>

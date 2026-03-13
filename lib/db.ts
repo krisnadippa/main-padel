@@ -12,6 +12,7 @@ export type Booking = {
   racket_id?: string;
   total_price: number;
   status: "confirmed" | "pending" | "cancelled";
+  payment_method?: "xendit" | "cash" | "transfer";
   created_at: string;
 };
 
@@ -174,7 +175,7 @@ function serializeError(err: unknown): string {
 // ── Dashboard stats ────────────────────────────────────────────
 export async function getDashboardStats() {
   const [bookingsRes, courtsRes, productsRes] = await Promise.all([
-    supabase.from("bookings").select("id, total_price, status, created_at"),
+    supabase.from("bookings").select("id, total_price, status, created_at, payment_method"),
     supabase.from("courts").select("id, status"),
     supabase.from("products").select("id, status, stock"),
   ]);
@@ -193,7 +194,7 @@ export async function getDashboardStats() {
     throw new Error(productsRes.error.message ?? serializeError(productsRes.error));
   }
 
-  const bookings = (bookingsRes.data ?? []) as { id: string; total_price: number; status: string; created_at: string }[];
+  const bookings = (bookingsRes.data ?? []) as { id: string; total_price: number; status: string; created_at: string; payment_method?: string }[];
   const courts = (courtsRes.data ?? []) as { id: string; status: string }[];
   const products = (productsRes.data ?? []) as { id: string; status: string; stock: number }[];
 
@@ -206,6 +207,14 @@ export async function getDashboardStats() {
   const todayBookings = bookings.filter(
     (b) => b.created_at?.startsWith(today)
   ).length;
+
+  const revenueByMethod = bookings
+    .filter((b) => b.status !== "cancelled")
+    .reduce((acc, b) => {
+      const method = b.payment_method || "xendit"; // Default to xendit for old records
+      acc[method] = (acc[method] || 0) + (b.total_price || 0);
+      return acc;
+    }, {} as Record<string, number>);
 
   const activeCourts = courts.filter((c) => c.status === "active").length;
 
@@ -236,6 +245,7 @@ export async function getDashboardStats() {
     totalRevenue,
     activeCourts,
     activeProducts,
+    revenueByMethod,
     trendData: Object.values(trendMap),
   };
 }
