@@ -12,8 +12,8 @@ export async function POST(request: Request) {
       booking_ids // Assuming we pass the list of booking IDs created in "pending" status
     } = await responseToJson(request);
 
-    // Origin for redirecting back to the app
-    const origin = request.headers.get("origin") || "";
+    // Base URL for redirecting back to the app
+    const origin = new URL(request.url).origin;
 
     // The external_id will be used to identify which bookings to update in the webhook.
     // Format: BOOKING|{timestamp}|{id1,id2,id3}

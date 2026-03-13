@@ -34,6 +34,7 @@ function BookingContent() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [bookingIds, setBookingIds] = useState<string[]>([]);
   const [bookingsForDate, setBookingsForDate] = useState<Booking[]>([]);
   const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null);
@@ -223,16 +224,17 @@ function BookingContent() {
         
         const data = await response.json();
         if (data.invoice_url) {
-          // Store invoice details and show receipt screen as requested
           setInvoiceUrl(data.invoice_url);
           setXenditExternalId(data.external_id);
           setSubmitted(true);
         } else {
           console.error("Xendit Error:", data.error);
+          setErrorMsg(data.error || "Failed to initiate payment");
           setSubmitted(true);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Payment initiation failed:", err);
+        setErrorMsg(err.message || "Connection error");
         setSubmitted(true);
       }
       // --------------------------
@@ -324,6 +326,13 @@ function BookingContent() {
                 style={{ width: "100%", background: "none", border: "1px solid var(--color-border)", padding: "12px", borderRadius: "10px", fontSize: "0.85rem", color: "var(--color-text-secondary)", cursor: "pointer" }}>
                 {paymentStatus === 'checking' ? "Checking..." : "I have paid, check status"}
               </button>
+            </div>
+          )}
+
+          {errorMsg && (
+            <div style={{ background: "#FEE2E2", border: "1px solid #FECACA", color: "#DC2626", padding: "12px", borderRadius: "10px", fontSize: "0.8rem", marginBottom: "20px", textAlign: "left" }}>
+              <strong>Payment Error:</strong> {errorMsg}
+              <p style={{ marginTop: "4px", opacity: 0.8 }}>Please contact admin or check your environment variables (XENDIT_SECRET_KEY).</p>
             </div>
           )}
 
