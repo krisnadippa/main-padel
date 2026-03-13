@@ -454,12 +454,22 @@ function BookingContent() {
                       {TIME_SLOTS.map((slot) => {
                         const isBooked = bookedSlots.includes(slot);
                         const isSelected = selectedSlots.includes(slot);
+                        
+                        // Disable past slots if today
+                        const now = new Date();
+                        const today = now.toISOString().split("T")[0];
+                        const currentHour = now.getHours();
+                        const [slotHour] = slot.split(":").map(Number);
+                        const isPast = selectedDate === today && slotHour <= currentHour;
+                        
+                        const isDisabled = isBooked || isPast;
+                        
                         return (
-                          <button key={slot} disabled={isBooked} onClick={() => toggleSlot(slot)}
+                          <button key={slot} disabled={isDisabled} onClick={() => toggleSlot(slot)}
                             style={{
                               padding: "9px 6px", borderRadius: "7px", fontSize: "0.78rem", fontWeight: "600",
-                              cursor: isBooked ? "not-allowed" : "pointer", transition: "all 0.15s ease",
-                              ...(isBooked
+                              cursor: isDisabled ? "not-allowed" : "pointer", transition: "all 0.15s ease",
+                              ...(isDisabled
                                 ? { background: "var(--color-surface)", border: "1px solid var(--color-border)", color: "var(--color-text-muted)", textDecoration: "line-through" }
                                 : isSelected
                                   ? { background: "var(--color-accent)", border: "1px solid var(--color-accent)", color: "#fff" }
