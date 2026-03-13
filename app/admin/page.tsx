@@ -242,7 +242,12 @@ export default function AdminPage() {
     payment_method: "cash" | "transfer";
   };
   
-  const [addForm, setAddForm] = useState<AdminBookingForm>({ customer_name: "", customer_phone: "", customer_email: "", court_id: "lapangan1", booking_date: new Date().toISOString().split("T")[0], start_times: ["09:00"], selected_rackets: [], total_price: 150000, status: "confirmed", payment_method: "cash" });
+  const getLocalDate = () => {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+  };
+
+  const [addForm, setAddForm] = useState<AdminBookingForm>({ customer_name: "", customer_phone: "", customer_email: "", court_id: "lapangan1", booking_date: getLocalDate(), start_times: ["09:00"], selected_rackets: [], total_price: 150000, status: "confirmed", payment_method: "cash" });
 
   const getAvailableRacketStock = (racketId: string, date: string, times: string[]) => {
     if (times.length === 0) return 12;
