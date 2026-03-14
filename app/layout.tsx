@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body style={{ fontFamily: "var(--font-inter, sans-serif)" }}>
+      <body style={{ fontFamily: "var(--font-inter, sans-serif)", overflowX: "hidden", width: "100%", position: "relative" }}>
         <LayoutShell>{children}</LayoutShell>
       </body>
     </html>

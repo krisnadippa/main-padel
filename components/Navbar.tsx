@@ -124,7 +124,7 @@ export default function Navbar() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}
-            style={{ position: "fixed", top: "66px", left: 0, right: 0, zIndex: 99, background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "10px 14px 16px", display: "flex", flexDirection: "column", gap: "3px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}>
+            style={{ position: "fixed", top: "66px", left: 0, right: 0, zIndex: 99, background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "10px 14px 16px", display: "flex", flexDirection: "column", gap: "3px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", maxWidth: "100vw", overflowX: "hidden" }}>
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href} style={{ padding: "11px 12px", color: pathname === link.href ? "#0284c7" : "#475569", textDecoration: "none", fontSize: "0.95rem", fontWeight: pathname === link.href ? "700" : "500", borderRadius: "8px", background: pathname === link.href ? "#e0f2fe" : "transparent" }}>
                 {link.label}

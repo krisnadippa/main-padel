@@ -305,7 +305,7 @@ function BookingContent() {
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
               <button className="btn-neon" style={{ width: "100%", justifyContent: "center", padding: "16px" }}
                 onClick={() => window.open(invoiceUrl, "_blank")}>
-                Pay Now (Xendit)
+                Pay Now
               </button>
               <button 
                 disabled={paymentStatus === 'checking'}
